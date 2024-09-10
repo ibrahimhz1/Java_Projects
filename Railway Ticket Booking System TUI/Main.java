@@ -151,9 +151,12 @@ public class Main {
                                     + 1 + " : ");
                     SeatArr[i] = sc.nextLine();
                 }
-                Booking book = new Booking(currentCust.getCustomerID(), train.getTrainNumber(), SeatArr);
+                Booking book = new Booking(currentCust.getCustomerID(), train.getTrainNumber(), train.getTrainname(), SeatArr, train.getOriginStation(), train.getDestinationStation());
                 bookArr = Arrays.copyOf(bookArr, bookArr.length + 1);
                 bookArr[bookArr.length - 1] = book;
+                System.out.println("YOUR TICKET IS BOOKED");
+                book.getDetail();
+                System.out.println("######################");
                 return bookArr;
             } else if (j == 2) {
                 exit = 1;
@@ -177,6 +180,16 @@ public class Main {
                 searchedTrain[searchedTrain.length - 1] = trainArr[i];
             }
         }
+        // sorting the trian number 
+        for(int i=0; i<searchedTrain.length; i++){
+            for(int j=i+1; j<searchedTrain.length; j++){
+                if(Integer.parseInt(searchedTrain[i].getTrainNumber()) > Integer.parseInt(searchedTrain[j].getTrainNumber()) ){
+                    Train temp = searchedTrain[i];
+                    searchedTrain[i] = searchedTrain[j];
+                    searchedTrain[j] = temp;
+                }
+            }
+        }
         System.out.println(searchedTrain.length + " Result Found for your Search");
         int flag = 0;
         for (int i = 0; i < searchedTrain.length; i++) {
@@ -196,7 +209,7 @@ public class Main {
     static Booking[] viewBookedTickets(Customer currentCust, Booking[] bookArr, Scanner sc) {
         Booking[] bookedTickets = new Booking[0];
         for (int i = 0; i < bookArr.length; i++) {
-            if (currentCust.getCustomerID().equals(bookArr[i].getCustomerID())) {
+            if (currentCust.getCustomerID().equals(bookArr[i].getCustomerID()) && !bookArr[i].getBookingStatus().equals("cancelled")) {
                 bookedTickets = Arrays.copyOf(bookedTickets, bookedTickets.length + 1);
                 bookedTickets[bookedTickets.length - 1] = bookArr[i];
             }
@@ -206,14 +219,13 @@ public class Main {
             bookedTickets[i].getDetail();
             System.out.println("#######################################");
         }
-        System.out.println("1. Delete Booking\n2. Exit");
+        System.out.println("1. Cancel Booking\n2. Exit");
         System.out.print("Choice : ");
         int c = sc.nextInt();
         if (c == 1) {
             System.out.print("Enter Number : ");
             int n = sc.nextInt();
-            bookedTickets[n - 1] = bookedTickets[bookedTickets.length - 1];
-            bookedTickets = Arrays.copyOf(bookedTickets, bookedTickets.length - 1);
+            bookedTickets[n-1].setBookingStatus("cancelled");
             bookArr = bookedTickets;
             return bookedTickets;
         } else if (c == 2) {
@@ -222,14 +234,23 @@ public class Main {
         return bookArr;
     }
 
+    // View Booked History
+    static void viewBookedHistory(Customer currentCust, Booking[] bookArr){
+        for(int i=0; i<bookArr.length; i++){
+            if(bookArr[i].getCustomerID().equals(currentCust.getCustomerID())){
+                bookArr[i].getDetail();
+            }
+        }
+    }
+
     // After Login Methods
     static Booking[] afterCustomerLoggedIn(Train[] trainArr, Customer currentCust, Booking[] bookArr, Scanner sc) {
         int exit = 0;
         Booking[] newBookArr = bookArr;
         while (exit == 0) {
             System.out
-                    .println("1. Edit Profile Info\n2. Search / Book Ticket\n3. View Booked Tickets\n4. Logout / Exit");
-            System.out.print("Choice 1 / 2 / 3 / 4 : ");
+                    .println("1. Edit Profile Info\n2. Search / Book Ticket\n3. View Booked Tickets\n4. Booked History\n5. Logout / Exit");
+            System.out.print("Choice 1 / 2 / 3 / 4 / 5 : ");
             int z = sc.nextInt();
             sc.nextLine();
 
@@ -242,7 +263,9 @@ public class Main {
             } else if (z == 3) {
                 bookArr = viewBookedTickets(currentCust, bookArr, sc);
                 newBookArr = bookArr;
-            } else if (z == 4) {
+            } else if(z == 4){
+                viewBookedHistory(currentCust, bookArr);
+            } else if (z == 5) {
                 exit = 1;
                 System.out.println(currentCust.getUsername() + " Logged Out :(");
             }
@@ -336,11 +359,11 @@ public class Main {
     }
 
     // Admin After Loggin in Methods
-    static Train[] afterAdminLogin(Admin admin, Scanner sc, Train[] trainArr) {
+    static Train[] afterAdminLogin(Admin admin, Scanner sc, Train[] trainArr, Customer[] custArr) {
         int exit = 0;
         while (exit == 0) {
-            System.out.println("\n1. Admin Info\n2. Add New Train\n3. Edit Train Details\n4. Logout");
-            System.out.print("Choice 1 / 2 / 3 / 4 : ");
+            System.out.println("\n1. Admin Info\n2. Add New Train\n3. Edit Train Details\n4. All Trains\n5. All Customers\n6. Logout");
+            System.out.print("Choice 1 / 2 / 3 / 4 / 5 / 6 : ");
             int choice = sc.nextInt();
             sc.nextLine();
             if (choice == 1)
@@ -379,7 +402,14 @@ public class Main {
                 String trainNumber = sc.nextLine();
                 Train[] updatedTrainArr = editTrainDetails(trainNumber, trainArr, sc);
                 trainArr = updatedTrainArr;
-            } else if (choice == 4) {
+            } else if(choice == 4){
+                for (int i = 0; i < trainArr.length; i++) {
+                    trainArr[i].getDetail();
+                }
+            } else if(choice == 5){
+                // Get all customers details
+                getAllCustomers(custArr);
+            } else if (choice == 6) {
                 System.out.println("Admin Logged out :(");
                 exit = 1;
             }
@@ -398,7 +428,7 @@ public class Main {
 
         while (exit == 0) {
             System.out.println(
-                    "\n1. Register\n2. Login\n3. Register Admin\n4. Login Admin\n5. All Customers Details\n6. All Trains\n0. Exit Program");
+                    "\n1. Register\n2. Login\n3. Register Admin\n4. Login Admin\n0. Exit Program");
             System.out.print("Choice : 1 / 2 / 3 / 4 / 5 / 6 / 0 : ");
             int choice = sc.nextInt();
             sc.nextLine();
@@ -477,17 +507,10 @@ public class Main {
                 System.out.print("Login Admin Password: ");
                 String adminPasswd = sc.nextLine();
                 if (adminLogin(adminEmail, adminPasswd, admin) == 1) {
-                    Train[] updatedTrainArr = afterAdminLogin(admin, sc, trainArr);
+                    Train[] updatedTrainArr = afterAdminLogin(admin, sc, trainArr, custArr);
                     trainArr = updatedTrainArr;
                 }else{
                     System.out.println("Wrong Credentials !!! ");
-                }
-            } else if (choice == 5) {
-                // Get all customers details
-                getAllCustomers(custArr);
-            } else if (choice == 6) {
-                for (int i = 0; i < trainArr.length; i++) {
-                    trainArr[i].getDetail();
                 }
             } else if (choice == 0) {
                 exit = 1;
@@ -696,10 +719,13 @@ class Booking {
     String bookingID;
     String customerID;
     String trainNumber;
+    String trainName;
     String[] seatNumber;
     String bookingDate;
     int fare = 0;
     String bookingStatus;
+    String originStation;
+    String destinationStation;
 
     public void generateBookingID() {
         int min = 10000;
@@ -725,14 +751,20 @@ class Booking {
     public Booking(
             String customerID,
             String trainNumber,
-            String[] seatNumber) {
+            String trainName,
+            String[] seatNumber,
+            String originStation,
+            String destinationStation) {
         this.generateBookingID();
         this.customerID = customerID;
         this.trainNumber = trainNumber;
+        this.trainName = trainName;
         this.seatNumber = seatNumber;
         this.bookingDate = generateBookingDate();
-        this.bookingStatus = "active";
+        this.bookingStatus = "confirmed";
         this.fare = fareCalculate(seatNumber.length);
+        this.originStation = originStation;
+        this.destinationStation = destinationStation;
     }
 
     public String getCustomerID() {
@@ -741,6 +773,10 @@ class Booking {
 
     public String getBookingID() {
         return this.bookingID;
+    }
+
+    public String getBookingStatus(){
+        return this.bookingStatus;
     }
 
     public void setCustomerID(String customerID) {
@@ -770,10 +806,13 @@ class Booking {
     public void getDetail() {
         System.out.println("Customer ID : " + this.customerID);
         System.out.println("Train Number : " + this.trainNumber);
+        System.out.println("Train Name : " + this.trainName);
         for (int i = 0; i < this.seatNumber.length; i++) {
             System.out.println("Seat Number : " + this.seatNumber[i]);
         }
         System.out.println("Booking Date : " + this.bookingDate);
+        System.out.println("Source Point : " + this.originStation);
+        System.out.println("Source Point : " + this.destinationStation);
         System.out.println("Fare : " + this.fare);
         System.out.println("Booking Status : " + this.bookingStatus);
     }
