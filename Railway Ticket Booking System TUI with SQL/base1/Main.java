@@ -25,7 +25,7 @@ public class Main {
 			}else if(choice == 3) {
 				admin = Admin.adminRegister(sc);
 			}else if(choice == 4) {
-				trainArr = Admin.adminLogin(admin, trainArr, passengerArr, sc);
+				trainArr = Admin.adminLogin(admin, trainArr, passengerArr, ticketArr, sc);
 			}else if(choice == 8) {
 				exit = 1;
 				System.out.println("Program Exited");

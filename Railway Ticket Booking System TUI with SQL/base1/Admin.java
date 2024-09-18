@@ -55,13 +55,13 @@ public class Admin {
         return admin;
     }
     
-    static ArrayList<Train> adminLogin(Admin admin, ArrayList<Train> trainArr, ArrayList<Passenger> passengerArr, Scanner sc) {
+    static ArrayList<Train> adminLogin(Admin admin, ArrayList<Train> trainArr, ArrayList<Passenger> passengerArr, ArrayList<Ticket> ticketArr, Scanner sc) {
     	System.out.print("Login Admin Email : ");
         String adminEmail = sc.nextLine();
         System.out.print("Login Admin Password: ");
         String adminPasswd = sc.nextLine();
         if (adminLoginValidation(adminEmail, adminPasswd, admin) == 1) {
-            ArrayList<Train> updatedTrainArr = afterAdminLogin(admin, sc, trainArr, passengerArr);
+            ArrayList<Train> updatedTrainArr = afterAdminLogin(admin, sc, trainArr, ticketArr, passengerArr);
             trainArr = updatedTrainArr;
         }else{
             System.out.println("Wrong Credentials !!! ");
@@ -79,10 +79,10 @@ public class Admin {
     }
     
     // Admin After Loggin in Methods
-    static ArrayList<Train> afterAdminLogin(Admin admin, Scanner sc, ArrayList<Train> trainArr, ArrayList<Passenger> passengerArr) {
+    static ArrayList<Train> afterAdminLogin(Admin admin, Scanner sc, ArrayList<Train> trainArr, ArrayList<Ticket> ticketArr, ArrayList<Passenger> passengerArr) {
         int exit = 0;
         while (exit == 0) {
-            System.out.println("\n1. Admin Info\n2. Add New Train\n3. Edit Train Details\n4. All Trains\n5. All Customers\n6. Logout");
+            System.out.println("\n1. Admin Info\n2. Add New Train\n3. Edit Train Details\n4. All Trains\n5. Passengers Of Particular Train\n6. All Passengers\n7. Logout");
             System.out.print("Choice 1 / 2 / 3 / 4 / 5 / 6 : ");
             int choice = sc.nextInt();
             sc.nextLine();
@@ -125,12 +125,14 @@ public class Admin {
                 for (Train t : trainArr) {
                     t.getDetail();
                 }
-            } else if(choice == 5){
+            } else if(choice == 5) {
+            	Train.ListPassengersOfTrain(sc, ticketArr);
+            } else if(choice == 6){
                 // Get all customers details
             	for (Passenger p : passengerArr) {
                     p.getDetail();
                 }
-            } else if (choice == 6) {
+            } else if (choice == 7) {
                 System.out.println("Admin Logged out :(");
                 exit = 1;
             }

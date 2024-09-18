@@ -129,4 +129,19 @@ public class Train {
         return ticketArr;
     }
     
+    static void ListPassengersOfTrain (Scanner sc, ArrayList<Ticket> ticketArr){
+    	Map<String, String> trainPassengerDict = new HashMap<>();
+    	System.out.print("Enter Train Name : ");
+    	String trainName = sc.nextLine();
+    	for(Ticket t : ticketArr) {
+    		if(t.getTrainName().equalsIgnoreCase(trainName)) {
+    			trainPassengerDict.put(t.getCustomerID(), t.getTrainName()); 
+    		}
+    	}
+    	
+    	// Iterate over key-value pairs
+        for (Map.Entry<String, String> entry : trainPassengerDict.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }
+    }
 }

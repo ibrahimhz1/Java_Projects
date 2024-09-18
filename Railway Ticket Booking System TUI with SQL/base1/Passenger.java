@@ -78,10 +78,10 @@ public class Passenger {
             username = sc.nextLine();
         }
         
-        System.out.println("Enter Name : ");
+        System.out.print("Enter Name : ");
         String name = sc.nextLine();
         while (isNameValid(name) == 0) {
-            System.out.println("Name cannot be more than 70 characters");
+            System.out.print("Name cannot be more than 70 characters");
             System.out.print("Enter Name: ");
             name = sc.nextLine();
         }

@@ -71,6 +71,8 @@ public class Ticket extends Passenger {
     public String getBookingStatus(){
         return this.bookingStatus;
     }
+    
+    public String getTrainName() {return this.trainName;}
 
     public void setCustomerID(String customerID) {
         this.passengerID = customerID;
