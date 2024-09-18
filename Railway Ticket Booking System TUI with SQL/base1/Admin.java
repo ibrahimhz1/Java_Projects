@@ -1,7 +1,7 @@
 package base1;
 import java.util.*;
 
-public class Admin {
+public class Admin extends Thread {
     int adminID;
     String username;
     String email;
@@ -130,7 +130,7 @@ public class Admin {
             } else if(choice == 6){
                 // Get all customers details
             	for (Passenger p : passengerArr) {
-                    p.getDetail();
+                    p.getPassengerDetail();
                 }
             } else if (choice == 7) {
                 System.out.println("Admin Logged out :(");

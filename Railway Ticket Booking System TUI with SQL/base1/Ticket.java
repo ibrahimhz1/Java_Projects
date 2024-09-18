@@ -3,7 +3,7 @@ package base1;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Ticket extends Passenger {
+public class Ticket extends Passenger implements Runnable {
     String bookingID;
     String passengerID;
     String trainNumber;
@@ -16,6 +16,7 @@ public class Ticket extends Passenger {
     String destinationStation;
     String departureTime;
     String arrivalTime;
+    int platformNo;
 
     public void generateBookingID() {
         int min = 10000;
@@ -23,6 +24,14 @@ public class Ticket extends Passenger {
         int range = max - min + 1;
         int rand = (int) (Math.random() * range) + min;
         this.bookingID = String.valueOf(rand);
+    }
+    
+    public void generateRandomPlatform() {
+        int min = 1;
+        int max = 5;
+        int range = max - min + 1;
+        int rand = (int) (Math.random() * range) + min;
+        this.platformNo = rand;
     }
 
     public int fareCalculate(int numOfSeats) {
@@ -97,7 +106,7 @@ public class Ticket extends Passenger {
     public void setBookingStatus(String bookingStatus) {
         this.bookingStatus = bookingStatus;
     }
-
+    
     public void getDetail() {
         System.out.println("Customer ID : " + this.passengerID);
         System.out.println("Train Number : " + this.trainNumber);
@@ -108,8 +117,12 @@ public class Ticket extends Passenger {
         System.out.println("Booking Date : " + this.bookingDate);
         System.out.println("Source Point : " + this.originStation);
         System.out.println("Source Point : " + this.destinationStation);
+        System.out.println("Platform No : " + this.platformNo);
         System.out.println("Fare : " + this.fare);
         System.out.println("Booking Status : " + this.bookingStatus);
+    }
+    public void run () {
+    	getDetail();
     }
     
     public static ArrayList<Ticket> bookTrainMethod(Passenger currentPassenger, ArrayList<Ticket> ticketArr, Train train, Scanner sc) {

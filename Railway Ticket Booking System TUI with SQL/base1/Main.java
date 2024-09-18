@@ -3,7 +3,7 @@ package base1;
 import java.util.*;
 
 public class Main {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		Scanner sc = new Scanner(System.in);
 		ArrayList <Passenger> passengerArr = new ArrayList<>();
 		ArrayList <Train> trainArr = new ArrayList<>();
@@ -13,7 +13,9 @@ public class Main {
 		while(exit == 0) {
 			System.out.println("1. Register Passenger\n2. Login Passenger\n3. Register Admin\n4. Login Register\n8. Exit Program");
 			System.out.print("Choice: ");
-			int choice = sc.nextInt();sc.nextLine();
+			int choice = 0;
+			choice = sc.nextInt();sc.nextLine();
+			System.out.println("Enter Valid Option (Choice Number), it cannot be a words or symbols");
 			if(choice == 1) {
 				passengerArr = Passenger.addNewPassenger(passengerArr, sc);
 			}else if(choice == 2) {
@@ -29,9 +31,11 @@ public class Main {
 			}else if(choice == 8) {
 				exit = 1;
 				System.out.println("Program Exited");
+			}else {
+				exit = 1;
+				System.out.println("Program Exited");
 			}
 		}
-		
 		sc.close();
 	}
 }

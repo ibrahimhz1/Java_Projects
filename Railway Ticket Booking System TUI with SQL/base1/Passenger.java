@@ -3,7 +3,10 @@ package base1;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Passenger {
+import base1.CustomException.InvalidUsernameExp;
+
+public class Passenger extends Thread{
+	public void run() {};
 	private String passengerID;
 	private String passengerUsername;
 	private String passengerName;
@@ -34,9 +37,7 @@ public class Passenger {
 		this.generateUserID();
 	}
 	
-	public Passenger() {
-		// TODO Auto-generated constructor stub
-	}
+	public Passenger() {}
 
 	public void setPassengerID(String passengerID) {this.passengerID = passengerID;}
 	public void setPassengerUsername(String username) {this.passengerUsername = username;}
@@ -58,7 +59,7 @@ public class Passenger {
 	public String getPassengerContact(){return this.passengerContact;}
 	public String getPassengerGender(){return this.passengerGender;}
 
-	public void getDetail() {
+	public void getPassengerDetail() {
 		System.out.println(this.passengerID);
 		System.out.println(this.passengerUsername);
 		System.out.println(this.passengerName);
@@ -72,11 +73,11 @@ public class Passenger {
 	public static ArrayList<Passenger> addNewPassenger(ArrayList <Passenger>passengerArr, Scanner sc) {
 		System.out.print("Enter Username: ");
         String username = sc.nextLine();
-        while (isUsernameValid(username) == 0) {
-            System.out.println("Username cannot be more than 50 characters");
-            System.out.print("Enter Username: ");
-            username = sc.nextLine();
-        }
+		while (isUsernameValid(username) == 0) {
+		    System.out.println("Username cannot be more than 50 characters");
+		    System.out.print("Enter Username: ");
+		    username = sc.nextLine();
+		}
         
         System.out.print("Enter Name : ");
         String name = sc.nextLine();
@@ -139,7 +140,7 @@ public class Passenger {
 	}
 	
 	// After Login Methods
-    static ArrayList<Ticket> afterPassengerLoggedIn(ArrayList<Train> trainArr, Passenger currentPassenger, ArrayList<Ticket> ticketArr, Scanner sc) {
+    static ArrayList<Ticket> afterPassengerLoggedIn(ArrayList<Train> trainArr, Passenger currentPassenger, ArrayList<Ticket> ticketArr, Scanner sc) throws InterruptedException {
         int exit = 0;
         ArrayList<Ticket> newTicketArr = ticketArr;
         while (exit == 0) {
@@ -173,7 +174,7 @@ public class Passenger {
             int cChoice = sc.nextInt();
             sc.nextLine();
             if (cChoice == 1) {
-                passenger.getDetail();
+                passenger.getPassengerDetail();
             } else if (cChoice == 2) {
                 System.out.println("Changing Username from " + passenger.getPassengerUsername() + " : ");
                 String newUsername = sc.nextLine();
@@ -226,7 +227,7 @@ public class Passenger {
         }
     }
     
-    static ArrayList<Ticket> viewBookedTickets(Passenger passenger, ArrayList<Ticket> ticketArr, Scanner sc) {
+    static ArrayList<Ticket> viewBookedTickets(Passenger passenger, ArrayList<Ticket> ticketArr, Scanner sc) throws InterruptedException {
         ArrayList<Ticket> bookedTickets = new ArrayList<>();
         for(Ticket t : ticketArr) {
         	if(passenger.getPassengerID().equals(t.getCustomerID()) && !t.getBookingStatus().equals("cancelled")) {
@@ -236,7 +237,11 @@ public class Passenger {
         int i = 1;
         for(Ticket t : bookedTickets) {
         	System.out.println(i + " " + t.getBookingID());
-        	t.getDetail();
+        	Thread t0 = new Passenger();
+        	Thread t1 = new Thread(t);
+        	t1.setPriority(10);
+        	t1.start();
+        	t0.sleep(2000);
         	i = i + 1;
         	System.out.println("#######################################");
         }
@@ -270,7 +275,7 @@ public class Passenger {
         }
     }
     
-	public static CustomObject loginUser(ArrayList<Passenger> passengerArr, ArrayList<Train> trainArr, ArrayList<Ticket> ticketArr, Scanner sc) {
+	public static CustomObject loginUser(ArrayList<Passenger> passengerArr, ArrayList<Train> trainArr, ArrayList<Ticket> ticketArr, Scanner sc) throws InterruptedException {
 		System.out.print("\nEnter Email: ");
         String email = sc.nextLine();
         System.out.print("\nEnter Password: ");
@@ -325,7 +330,7 @@ public class Passenger {
         if (username.length() <= 50)
             return 1;
         else
-            return 0;
+        	return 0;
     }
     
     static int isNameValid(String name) {
@@ -356,7 +361,7 @@ public class Passenger {
             return 0;
     }
 
-    // is Phone Num Valid
+    // is Phone Num-Valid
     static int isPhoneNumValid(String contactNum) {
         if (contactNum.length() == 10)
             return 1;
@@ -393,5 +398,4 @@ public class Passenger {
     		return 1;
     	}else return 0;
     }
-
 }

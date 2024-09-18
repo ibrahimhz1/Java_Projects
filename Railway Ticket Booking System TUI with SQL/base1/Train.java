@@ -2,7 +2,7 @@ package base1;
 
 import java.util.*;
 
-public class Train {
+public class Train extends Thread{
     String trainNumber;
     String trainName;
     String originStation;
