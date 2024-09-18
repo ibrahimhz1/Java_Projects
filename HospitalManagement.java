@@ -1,4 +1,4 @@
-package praPractices;
+package practicePrograms;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,7 +41,19 @@ public class HospitalManagement {
 		for(String dis : freqDiseases) {
 			System.out.println(dis);
 		}
+		ArrayList<String> expDoc = Solution.findBestDoctorAcrossHospitals(hospitalsArr);
 		System.out.println("###############");
+		System.out.println("Experienced Doctors: ");
+		for(int i=0; i<hospitalsArr.size(); i++) {
+			System.out.println(hospitalsArr.get(i).getHosName() + " : " + expDoc.get(i));
+		}
+		System.out.println("###############");
+		int doctorID = sc.nextInt();
+		int patientID = sc.nextInt();sc.nextLine();
+		String newDate = sc.nextLine();
+		
+		Patient p = Solution.updatePatientAdmissionDateForDoctor(hospitalsArr, doctorID, patientID, newDate);
+		System.out.println(p.getPatientID() + "\n" + p.getPatientName() + "\n" + p.getAge() + "\n" + p.getAdmissionDate() + "\n" + p.getDisease() + "\n");
 		sc.close();
 	}
 }
@@ -83,6 +95,52 @@ class Solution{
 		}
 		return highestFreq;
 	}
+	
+	public static ArrayList<String> findBestDoctorAcrossHospitals(ArrayList<Hospital> hospitalArr){
+		ArrayList<String> expDocs = new ArrayList<>();
+		for(Hospital hos : hospitalArr) {
+			int exp = Integer.MIN_VALUE;
+			Doctor tDoc = null;
+			ArrayList<Doctor> docList = hos.getHosDoctors();
+			for(Doctor doc : hos.getHosDoctors()) {
+				if(doc.getDoctorExp() > exp) {
+					exp = doc.getDoctorExp();
+					tDoc = doc;    // 1 1 2 4 2 4 1
+				}
+			}
+			ArrayList<Doctor> sameExpDoc = new ArrayList<>();
+			sameExpDoc.add(tDoc);
+			int maxID = sameExpDoc.get(0).getDoctorID();
+			String expDoc = sameExpDoc.get(0).getDoctorName();
+			for(Doctor d : docList) {
+				if(d.getDoctorExp() == tDoc.getDoctorExp()) {
+					if(d.getDoctorID() > maxID) {
+						maxID = d.getDoctorID();
+						expDoc = d.getDoctorName();
+					}
+				}
+			}
+			expDocs.add(expDoc);
+		}
+		return expDocs; 
+	}
+	
+	public static Patient updatePatientAdmissionDateForDoctor(ArrayList<Hospital> hospitalArr, int doctorId, int patientId, String newDate) {
+		Patient patient = null;
+		for(Hospital hos : hospitalArr) {
+			for(Doctor doc : hos.getHosDoctors()) {
+				if(doc.getDoctorID() == doctorId) {
+					for(Patient p : doc.getDocPatients()) {
+						if(p.getPatientID() == patientId) {
+							p.setAdmissionDate(newDate);
+							return p;
+						}
+					}
+				}
+			}
+		}
+		return patient;
+	}
 }
 
 class Patient{
@@ -105,6 +163,7 @@ class Patient{
 	public int getAge() {return this.age;}
 	public String getDisease() {return this.disease;}
 	public String getAdmissionDate() {return this.admissionDate;}
+	public void setAdmissionDate(String newDate) {this.admissionDate = newDate;}
 	
 }
 
@@ -128,7 +187,6 @@ class Doctor{
 	public String getDoctorSpecs() {return this.specialization;}
 	public int getDoctorExp() {return this.yearsOfExp;}
 	public ArrayList<Patient> getDocPatients() {return this.patientArr;}
-	
 }
 
 class Hospital{
