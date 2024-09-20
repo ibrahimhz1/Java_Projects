@@ -1,4 +1,4 @@
-package jdbcconnectivity;
+package jdbcConnectivity;
 
 import java.sql.*;
 import java.util.*;
@@ -42,7 +42,7 @@ public class Main {
     private static void connect() {
         try {
 			String driver = "org.apache.derby.jdbc.EmbeddedDriver";
-			String url = "jdbc:derby:D:\\PLAY\\Eclipse\\TCS_Programs\\Train_Booking_System\\MYDB\\TrainManDB;create=true";
+			String url = "jdbc:derby:C:\\Users\\2729299\\MyDB\\TrainManDB;create=true";
 			Class.forName(driver);
 			conn = DriverManager.getConnection(url);
         } catch (ClassNotFoundException | SQLException e) {
@@ -322,6 +322,9 @@ public class Main {
 
     private static void deleteTrain(Scanner scanner) {
         connect();
+        for(Train t : getTrains()) {
+        	System.out.println("Train No: " + t.trainNum + ", Name: " + t.trainName);
+        }
         try {
             System.out.print("Enter Train Number to Delete: ");
             int trainNumber = scanner.nextInt();
@@ -569,18 +572,18 @@ public class Main {
         	String createTabQry = "CREATE TABLE Bookings ("
         			+ "booking_id INT PRIMARY KEY,"
         			+ "username VARCHAR(50) NOT NULL,"
-        			+ "train_number INT NOT NUL,"
+        			+ "train_number INT NOT NULL,"
         			+ "travel_date VARCHAR(10) NOT NULL,"
         			+ "class VARCHAR(50) NOT NULL,"
         			+ "total_seats INT NOT NULL,"
-        			+ "status VARCHAR(50) NOT NULL,"
+        			+ "bookingStatus VARCHAR(50),"
         			+ "FOREIGN KEY (username) REFERENCES Customers(username),"
         			+ "FOREIGN KEY (train_number) REFERENCES Trains(train_number))";
         	ps = conn.prepareStatement(createTabQry);
         	ps.executeUpdate();
         	System.out.println("Booking Table Created");
         }catch(Exception e) {
-        	System.out.println("Booking Table Created Already");
+        	System.out.println("Booking Table Created Already : "+ e.getMessage());
         }
         
         System.out.print("Enter Train Number: ");
@@ -600,17 +603,18 @@ public class Main {
             if (rs.next()) {
                 int availableSeats = rs.getInt("available_seats");
                 if (availableSeats >= tickets_needed) {
-                	if(rs.getString("status").equals(""))
-                    System.out.print("Seats available! Please confirm your booking (yes/no): ");
-                    String confirmation = scanner.next();
+            		System.out.print("Seats available! Please confirm your booking (yes/no): ");
+                    String confirmation = scanner.nextLine();
+                    int bookingID = generateBookingID();
                     if (confirmation.equalsIgnoreCase("yes")) {
-                        String bookingQuery = "INSERT INTO Bookings (username, train_number, travel_date, class, total_seats, status) VALUES (?, ?, ?, ?, ?, 'Booked')";
+                        String bookingQuery = "INSERT INTO Bookings (booking_id, username, train_number, travel_date, class, total_seats, bookingStatus) VALUES (?, ?, ?, ?, ?, ?, 'Booked')";
                         PreparedStatement psBooking = conn.prepareStatement(bookingQuery);
-                        psBooking.setString(1, username);
-                        psBooking.setInt(2, trainNumber);
-                        psBooking.setString(3, date);
-                        psBooking.setString(4, preferredClass);
-                        psBooking.setInt(5, tickets_needed);
+                        psBooking.setInt(1, bookingID);
+                        psBooking.setString(2, username);
+                        psBooking.setInt(3, trainNumber);
+                        psBooking.setString(4, date);
+                        psBooking.setString(5, preferredClass);
+                        psBooking.setInt(6, tickets_needed);
                         psBooking.executeUpdate();
 
                         String updateSeatsQuery = "UPDATE Trains SET available_seats = available_seats - ? WHERE train_number=?";
@@ -618,7 +622,6 @@ public class Main {
                         psUpdateSeats.setInt(1, tickets_needed);
                         psUpdateSeats.setInt(2, trainNumber);
                         psUpdateSeats.executeUpdate();
-
                         System.out.println("Booking successful.");
                     } else {
                         System.out.println("Booking cancelled.");
@@ -630,7 +633,7 @@ public class Main {
                 System.out.println("Invalid Train Number.");
             }
         } catch (SQLException e) {
-            System.out.println("Error booking ticket: " + e.getMessage());
+            System.out.println(e);
         } finally {
             close();
         }
@@ -650,10 +653,10 @@ public class Main {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String status = rs.getString("status");
+                String status = rs.getString("bookingStatus");
                 if ("Booked".equalsIgnoreCase(status)) {
                     System.out.println("Booking ID verified.");
-                    String updateStatusQuery = "UPDATE Bookings SET status='Cancelled' WHERE booking_id=?";
+                    String updateStatusQuery = "UPDATE Bookings SET bookingStatus='Cancelled' WHERE booking_id=?";
                     PreparedStatement psUpdateStatus = conn.prepareStatement(updateStatusQuery);
                     psUpdateStatus.setInt(1, bookingId);
                     psUpdateStatus.executeUpdate();
@@ -695,7 +698,7 @@ public class Main {
                 System.out.println("Train Number: " + rs.getInt("train_number"));
                 System.out.println("Travel Date: " + rs.getString("travel_date"));
                 System.out.println("Class: " + rs.getString("class"));
-                System.out.println("Status: " + rs.getString("status"));
+                System.out.println("Status: " + rs.getString("bookingStatus"));
                 System.out.println();
             }
         } catch (SQLException e) {
@@ -719,6 +722,14 @@ public class Main {
 			e.printStackTrace();
 		}
     	return trainArr;
+    }
+    
+    private static int generateBookingID() {
+        int min = 1000;
+        int max = 9999;
+        int range = max - min + 1;
+        int rand = (int) (Math.random() * range) + min;
+        return rand;
     }
 }
 
