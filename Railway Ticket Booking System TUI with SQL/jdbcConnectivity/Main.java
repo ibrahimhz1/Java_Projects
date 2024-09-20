@@ -4,30 +4,33 @@ import java.sql.*;
 import java.util.*;
 
 public class Main {
-
     private static Connection conn;
-
+    static PreparedStatement ps = null;
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("Welcome to the Train Ticket Booking System");
-            System.out.println("1. Admin Login");
-            System.out.println("2. Customer Registration");
-            System.out.println("3. Customer Login");
-            System.out.println("4. Exit");
+            System.out.println("1. Admin Registeration");
+            System.out.println("2. Admin Login");
+            System.out.println("3. Customer Registration");
+            System.out.println("4. Customer Login");
+            System.out.println("5. Exit");
             System.out.print("Enter your choice: ");
-            int choice = scanner.nextInt();
+            int choice = scanner.nextInt();scanner.nextLine();
             switch (choice) {
                 case 1:
-                    adminLogin(scanner);
+                	adminRegister(scanner);
                     break;
                 case 2:
-                    customerRegistration(scanner);
+                	adminLogin(scanner);
                     break;
                 case 3:
-                    customerLogin(scanner);
+                	customerRegistration(scanner);
                     break;
                 case 4:
+                	customerLogin(scanner);
+                    break;
+                case 5:
                     System.out.println("Goodbye!");
                     return;
                 default:
@@ -40,7 +43,6 @@ public class Main {
         try {
 			String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 			String url = "jdbc:derby:D:\\PLAY\\Eclipse\\TCS_Programs\\Train_Booking_System\\MYDB\\TrainManDB;create=true";
-			// String url = "jdbc:derby:C:\\Users\\inith\\MyDB;create=true";
 			Class.forName(driver);
 			conn = DriverManager.getConnection(url);
         } catch (ClassNotFoundException | SQLException e) {
@@ -57,16 +59,59 @@ public class Main {
             e.printStackTrace();
         }
     }
+    
+    private static void adminRegister(Scanner sc) {
+    	connect();
+    	System.out.print("Admin Username: ");
+        String username = sc.nextLine();
+        System.out.print("Admin Password: ");
+        String password = sc.nextLine();
+        PreparedStatement ps = null;
+        try {
+        	String createTableSQL = "CREATE TABLE ADMIN (adminUsername VARCHAR(20) PRIMARY KEY, password VARCHAR(30))";
+    		PreparedStatement ps1 = conn.prepareStatement(createTableSQL);
+    		ps1.executeUpdate();
+    		System.out.println("Table Admin created");
+    		String query = "INSERT INTO Admin (adminUsername, password) VALUES (?, ?)";
+        	ps = conn.prepareStatement(query);
+        	ps.setString(1, username);
+            ps.setString(2, password);
+            ps.executeUpdate();
+            System.out.println("Admin registered.");
+        }catch(Exception e) {
+        	System.out.println("Table Already Created");
+        }finally {        	
+        	close();
+        }
+    }
 
     private static void adminLogin(Scanner scanner) {
+    	connect();
         System.out.print("Enter Admin Username: ");
-        String username = scanner.next();
+        String username = scanner.nextLine();
         System.out.print("Enter Admin Password: ");
-        String password = scanner.next();
-        if (username.equals("admin") && password.equals("admin123")) {
-            adminMenu(scanner);
-        } else {
-            System.out.println("Incorrect Username or Password.");
+        String password = scanner.nextLine();
+        String aUname = "";
+    	String adPasswd = "";
+        try {
+        	String loginQuery = "select adminUsername, password from ADMIN WHERE adminUsername=? and password=?";
+        	PreparedStatement ps = conn.prepareStatement(loginQuery);
+        	ps.setString(1, username);
+        	ps.setString(2, password);
+        	ResultSet rs = ps.executeQuery();
+        	while(rs.next()) {
+        		aUname = rs.getString("adminUsername");
+        		adPasswd = rs.getString("password");
+        	}
+        	if (username.equals(aUname) && password.equals(adPasswd)) {
+                adminMenu(scanner);
+            } else {
+                System.out.println("Incorrect Username or Password.");
+            }
+        }catch(SQLException e) {
+        	System.out.println("Error while Logging in : " + e.getMessage());
+        }finally {
+        	close();
         }
     }
 
@@ -78,7 +123,7 @@ public class Main {
             System.out.println("3. Delete Train");
             System.out.println("4. Exit");
             System.out.print("Enter your choice: ");
-            int choice = scanner.nextInt();
+            int choice = scanner.nextInt();scanner.nextLine();
             switch (choice) {
                 case 1:
                     registerTrain(scanner);
@@ -99,82 +144,174 @@ public class Main {
 
     private static void registerTrain(Scanner scanner) {
     	connect();
-    	try {
-    	    String query = "CREATE TABLE IF NOT EXISTS Customers ("
-    	            + "username VARCHAR(50) PRIMARY KEY,"
-    	            + "password VARCHAR(50) NOT NULL,"
-    	            + "name VARCHAR(100),"
-    	            + "email VARCHAR(100) UNIQUE,"
-    	            + "phone CHAR(10) CHECK (LENGTH(phone) = 10),"
-    	            + "active BOOLEAN DEFAULT TRUE);";
-    	    PreparedStatement ps = conn.prepareStatement(query);
-    	    ps.executeUpdate();
-    	    System.out.println("Customers Table Created");
-    	} catch(SQLException e) {
-    	    System.out.println("Error while Creating Customers Table : " + e.getMessage());
-    	}
+    	int trainNumber;
+    	String trainName;
+    	String origin;
+    	String destination;
+    	String departure;
+    	String departure_time;
+    	String arrival;
+    	String arrival_time;
+    	int seats;
+    	PreparedStatement ps = null;
         try {
-            System.out.println("Enter Train Number: ");
-            int trainNumber = scanner.nextInt();
-            System.out.println("Enter Train Name: ");
-            String trainName = scanner.next();
-            System.out.println("Enter Origin Station: ");
-            String origin = scanner.next();
-            System.out.println("Enter Destination Station: ");
-            String destination = scanner.next();
-            System.out.println("Enter Departure Date: ");
-            String departure = scanner.next();
-            System.out.println("Enter Arrival Date: ");
-            String arrival = scanner.next();
-            System.out.println("Enter Total no. of seats available: ");
-            int seats = scanner.nextInt();
-
-            String query = "INSERT INTO Trains (train_number, train_name, origin, destination, departure, arrival, available_seats) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setInt(1, trainNumber);
-            ps.setString(2, trainName);
-            ps.setString(3, origin);
-            ps.setString(4, destination);
-            ps.setString(5, departure);
-            ps.setString(6, arrival);
-            ps.setInt(7, seats);
-            ps.executeUpdate();
-            System.out.println("Train registered successfully.");
+        	String createTableSQL = "CREATE TABLE Trains (train_number INT PRIMARY KEY,"
+        			+ "train_name VARCHAR(100) NOT NULL,"
+        			+ "origin VARCHAR(100) NOT NULL,"
+        			+ "destination VARCHAR(100) NOT NULL,"
+        			+ "departure VARCHAR(10) NOT NULL,"
+        			+ "departure_time VARCHAR(10) NOT NULL,"
+        			+ "arrival VARCHAR(10) NOT NULL,"
+        			+ "arrival_time VARCHAR(10) NOT NULL,"
+        			+ "available_seats INT NOT NULL,"
+        			+ "intermediate_stations varchar(200) NOT NULL)";
+    		ps = conn.prepareStatement(createTableSQL);
+    		ps.executeUpdate();
+    		System.out.println("Table Train created");
         } catch (SQLException e) {
-            System.out.println("Error registering train: " + e.getMessage());
-        } finally {
-            close();
+            System.out.println(" Train Table Created Already: " + e.getMessage());
         }
+
+		System.out.println("Enter Train Number: ");
+        trainNumber = scanner.nextInt();scanner.nextLine();
+        System.out.println("Enter Train Name: ");
+        trainName = scanner.nextLine();
+        System.out.println("Enter Origin Station: ");
+        origin = scanner.nextLine();
+        System.out.println("Enter Destination Station: ");
+        destination = scanner.nextLine();
+        System.out.println("Enter Departure Date: ");
+        departure = scanner.nextLine();
+        System.out.println("Enter Departure Time: ");
+        departure_time = scanner.nextLine();
+        System.out.println("Enter Arrival Date: ");
+        arrival = scanner.nextLine();
+        System.out.println("Enter Arrival Time: ");
+        arrival_time = scanner.nextLine();
+        System.out.println("Enter Total no. of seats available: ");
+        seats = scanner.nextInt();scanner.nextLine();
+        System.out.println("Enter the intermediate stations available Eg: Station A, Station B, Station C");
+        String stations = scanner.nextLine();
+		try {
+			String query = "INSERT INTO Trains (train_number, train_name, origin, destination, departure, departure_time, arrival, arrival_time, available_seats, intermediate_stations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			ps = conn.prepareStatement(query);
+			ps.setInt(1, trainNumber);
+	        ps.setString(2, trainName);
+	        ps.setString(3, origin);
+	        ps.setString(4, destination);
+	        ps.setString(5, departure);
+	        ps.setString(6, departure_time);
+	        ps.setString(7, arrival);
+	        ps.setString(8, arrival_time);
+	        ps.setInt(9, seats);
+	        ps.setString(10, stations);
+	        ps.executeUpdate();
+	        System.out.println("Train registered successfully.");
+		}catch(Exception e) {
+			System.out.println("Error Registering Train : " + e.getMessage());
+		}
+		close();
     }
 
     private static void updateTrain(Scanner scanner) {
         connect();
+        ps = null;
+        String qryString = "";
+        for(Train t : getTrains()) {
+        	System.out.println("Train No: " + t.trainNum + ", Name: " + t.trainName);
+        }
+        System.out.print("Enter Train No. to update : ");
+        int trainNum = scanner.nextInt();
         try {
-            System.out.print("Enter Train Number to Update: ");
-            int trainNumber = scanner.nextInt();
-            System.out.print("Enter new Train Name: ");
-            String trainName = scanner.next();
-            System.out.print("Enter new Origin Station: ");
-            String origin = scanner.next();
-            System.out.print("Enter new Destination Station: ");
-            String destination = scanner.next();
-            System.out.print("Enter new Departure Date: ");
-            String departure = scanner.next();
-            System.out.print("Enter new Arrival Date: ");
-            String arrival = scanner.next();
-            System.out.println("Enter new Total no. of seats available: ");
-            int seats = scanner.nextInt();
-
-            String query = "UPDATE Trains SET train_name=?, origin=?, destination=?, departure=?, arrival=? WHERE train_number=?";
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setString(1, trainName);
-            ps.setString(2, origin);
-            ps.setString(3, destination);
-            ps.setString(4, departure);
-            ps.setString(5, arrival);
-            ps.setInt(6, trainNumber);
-            ps.setInt(7, seats);
-            ps.executeUpdate();
+        	int exit = 0;
+        	while(exit == 0) {
+        		System.out.println("1. Update Train Number\n2. Update Train Name\n3. update Origin Station\n4. Update Destination\n5. Update Departure Date\n6. Update Departure time\n7. Update Arrival Date\n8. Update Arrival Time\n9. Number of Seats\n10. Update Intermediate Stations\n11. Save&Exit");
+        		System.out.print("Choice : ");
+        		int ch = scanner.nextInt();scanner.nextLine();
+        		if(ch == 1) {
+        			System.out.print("Enter Train Number to Update: ");
+                    int trainNumber = scanner.nextInt();scanner.nextLine();
+                    qryString = "update Trains set train_number=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setInt(1, trainNumber);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 2) {
+        			System.out.print("Enter new Train Name: ");
+                    String trainName = scanner.nextLine();
+                    qryString = "update Trains set train_name=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, trainName);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 3) {
+        			System.out.print("Enter new Origin Station: ");
+                    String origin = scanner.nextLine();
+                    qryString = "update Trains set origin=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, origin);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 4) {
+        			System.out.print("Enter new Destination Station: ");
+                    String destination = scanner.nextLine();
+                    qryString = "update Trains set destination=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, destination);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 5) {
+        			System.out.print("Enter new Departure Date: ");
+                    String departure = scanner.nextLine();
+                    qryString = "update Trains set departure=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, departure);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 6) {
+        			System.out.println("Enter new departure time: ");
+                    String departure_time = scanner.nextLine();
+                    qryString = "update Trains set departure_time=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, departure_time);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 7) {
+        			System.out.print("Enter new Arrival Date: ");
+                    String arrival = scanner.nextLine();
+                    qryString = "update Trains set arrival=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, arrival);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 8) {
+        			System.out.println("Enter new arrival time: ");
+                    String arrival_time = scanner.nextLine();
+                    qryString = "update Trains set arrival_time=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, arrival_time);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 9) {
+        			System.out.println("Enter new Total no. of seats available: ");
+                    int seats = scanner.nextInt();scanner.nextLine();
+                    qryString = "update Trains set available_seats=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setInt(1, seats);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 10) {
+        			System.out.println("Enter New Intermediate Stations : ");
+                    String stations = scanner.nextLine();
+                    qryString = "update Trains set intermediate_stations=? where train_number=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, stations);
+                    ps.setInt(2, trainNum);
+                    ps.executeUpdate();
+        		}else if(ch == 11) {
+        			exit = 1;
+        		}
+        	}
             System.out.println("Train details updated successfully.");
         } catch (SQLException e) {
             System.out.println("Error updating train: " + e.getMessage());
@@ -202,16 +339,32 @@ public class Main {
     }
 
     private static void customerRegistration(Scanner scanner) {
+    	connect();
+    	PreparedStatement ps = null;
+    	try {
+    		String tableCreateQuery = "CREATE TABLE Customers ("
+    				+ "username VARCHAR(50) PRIMARY KEY,"
+    				+ "password VARCHAR(50) NOT NULL,"
+    				+ "name VARCHAR(100) NOT NULL,"
+    				+ "email VARCHAR(100) NOT NULL UNIQUE,"
+    				+ "phone CHAR(10) NOT NULL CHECK (LENGTH(phone) = 10),"
+    				+ "active BOOLEAN DEFAULT TRUE)";
+    		ps = conn.prepareStatement(tableCreateQuery);
+    		ps.executeUpdate();
+    		System.out.println("Customer Table Created");
+    	}catch(Exception e) {
+    		System.out.println("Customer Table Created Already");
+    	}
         System.out.print("Enter Username: ");
-        String username = scanner.next();
+        String username = scanner.nextLine();
         System.out.print("Enter Password: ");
-        String password = scanner.next();
+        String password = scanner.nextLine();
         System.out.print("Enter Name: ");
-        String name = scanner.next();
+        String name = scanner.nextLine();
         System.out.print("Enter Email: ");
-        String email = scanner.next();
+        String email = scanner.nextLine();
         System.out.print("Enter Phone (10 digits): ");
-        String phone = scanner.next();
+        String phone = scanner.nextLine();
         if (!phone.matches("\\d{10}")) {
             System.out.println("Invalid phone number. It should contain exactly 10 digits.");
             return;
@@ -220,11 +373,9 @@ public class Main {
             System.out.println("Invalid email format.");
             return;
         }
-
-        connect();
         try {
             String query = "INSERT INTO Customers (username, password, name, email, phone) VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement ps = conn.prepareStatement(query);
+            ps = conn.prepareStatement(query);
             ps.setString(1, username);
             ps.setString(2, password);
             ps.setString(3, name);
@@ -311,30 +462,52 @@ public class Main {
 
     private static void updateCustomerDetails(Scanner scanner, String username) {
         connect();
+        String qryString = "";
         try {
-            System.out.print("Enter new Name: ");
-            String name = scanner.next();
-            System.out.print("Enter new Email: ");
-            String email = scanner.next();
-            System.out.print("Enter new Phone (10 digits): ");
-            String phone = scanner.next();
-            if (!phone.matches("\\d{10}")) {
-                System.out.println("Invalid phone number. It should contain exactly 10 digits.");
-                return;
-            }
-            if (!email.matches("\\S+@\\S+\\.\\S+")) {
-                System.out.println("Invalid email format.");
-                return;
-            }
-
-            String query = "UPDATE Customers SET name=?, email=?, phone=? WHERE username=?";
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setString(1, name);
-            ps.setString(2, email);
-            ps.setString(3, phone);
-            ps.setString(4, username);
-            ps.executeUpdate();
+        	int exit = 0;
+        	while(exit == 0) {
+        		System.out.println("1. Update Name\n2. Update Email\n3. Update Phone Number\n4. Back");
+        		System.out.print("Choice : ");
+        		int ch = scanner.nextInt();scanner.nextLine();
+        		if(ch == 1) {
+        			System.out.print("Enter New Name: ");
+                    String name = scanner.nextLine();
+                    qryString = "update Customers set name=? where username=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, name);
+                    ps.setString(2, username);
+                    ps.executeUpdate();
+        		}else if(ch == 2) {
+        			System.out.print("Enter new Email: ");
+                    String email = scanner.nextLine();
+                    if (!email.matches("\\S+@\\S+\\.\\S+")) {
+                        System.out.println("Invalid email format.");
+                        return;
+                    }
+                    qryString = "update Customers set email=? where username=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, email);
+                    ps.setString(2, username);
+                    ps.executeUpdate();
+        		}else if(ch == 3) {
+        			System.out.print("Enter new Phone Number.: ");
+                    String phone = scanner.nextLine();
+                    if (!phone.matches("\\d{10}")) {
+                        System.out.println("Invalid phone number. It should contain exactly 10 digits.");
+                        return;
+                    }
+                    qryString = "update Customers set phone=? where username=?";
+                    ps = conn.prepareStatement(qryString);
+                    ps.setString(1, phone);
+                    ps.setString(2, username);
+                    ps.executeUpdate();
+        		}else if(ch == 4) {
+        			exit = 1;
+        		}else {
+        			System.out.println("Invalid Choice");
+        		}
             System.out.println("Customer details updated successfully.");
+        	}
         } catch (SQLException e) {
             System.out.println("Error updating customer details: " + e.getMessage());
         } finally {
@@ -391,18 +564,36 @@ public class Main {
     
     private static void bookTicket(Scanner scanner, String username) {
         connect();
+        PreparedStatement ps = null;
         try {
-            System.out.print("Enter Train Number: ");
-            int trainNumber = scanner.nextInt();
-            System.out.print("Enter Travel Date (yyyy-mm-dd): ");
-            String date = scanner.next();
-            System.out.print("Enter Preferred Class (e.g., Sleeper, AC): ");
-            String preferredClass = scanner.next();
-            System.out.print("Enter number of seats required: ");
-            int tickets_needed = scanner.nextInt();
-
+        	String createTabQry = "CREATE TABLE Bookings ("
+        			+ "booking_id INT PRIMARY KEY,"
+        			+ "username VARCHAR(50) NOT NULL,"
+        			+ "train_number INT NOT NUL,"
+        			+ "travel_date VARCHAR(10) NOT NULL,"
+        			+ "class VARCHAR(50) NOT NULL,"
+        			+ "total_seats INT NOT NULL,"
+        			+ "status VARCHAR(50) NOT NULL,"
+        			+ "FOREIGN KEY (username) REFERENCES Customers(username),"
+        			+ "FOREIGN KEY (train_number) REFERENCES Trains(train_number))";
+        	ps = conn.prepareStatement(createTabQry);
+        	ps.executeUpdate();
+        	System.out.println("Booking Table Created");
+        }catch(Exception e) {
+        	System.out.println("Booking Table Created Already");
+        }
+        
+        System.out.print("Enter Train Number: ");
+        int trainNumber = scanner.nextInt();scanner.nextLine();
+        System.out.print("Enter Travel Date (yyyy-mm-dd): ");
+        String date = scanner.nextLine();
+        System.out.print("Enter Preferred Class (e.g., Sleeper, AC): ");
+        String preferredClass = scanner.nextLine();
+        System.out.print("Enter number of seats required: ");
+        int tickets_needed = scanner.nextInt();scanner.nextLine();
+        try {
             String checkAvailabilityQuery = "SELECT available_seats FROM Trains WHERE train_number=?";
-            PreparedStatement ps = conn.prepareStatement(checkAvailabilityQuery);
+            ps = conn.prepareStatement(checkAvailabilityQuery);
             ps.setInt(1, trainNumber);
             ResultSet rs = ps.executeQuery();
 
@@ -513,4 +704,46 @@ public class Main {
             close();
         }
     }
+    
+    private static ArrayList<Train> getTrains(){
+    	connect();
+    	ps = null;
+    	ArrayList<Train> trainArr = new ArrayList<>();
+    	try {
+			ps = conn.prepareStatement("select * from Trains");
+			ResultSet rs = ps.executeQuery();
+			while(rs.next()) {
+				trainArr.add(new Train(rs.getInt("train_number"), rs.getString("train_name"), rs.getString("origin"), rs.getString("destination"), rs.getString("departure"), rs.getString("departure_time"), rs.getString("arrival"), rs.getString("arrival_time"), rs.getInt("available_seats"), rs.getString("intermediate_stations") ));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+    	return trainArr;
+    }
+}
+
+class Train{
+	int trainNum;
+	String trainName;
+	String origin;
+	String destination;
+	String departure;
+	String departure_time;
+	String arrival;
+	String arrival_time;
+	int availableSeats;
+	String intermediateStations;
+	
+	public Train(int trainNum, String trainName, String origin, String destination, String departure, String departure_time, String arrival, String arrival_time, int availableSeats, String intermediateStations){
+		this.trainNum = trainNum;
+		this.trainName = trainName;
+		this.origin = origin;
+		this.destination = destination;
+		this.departure = departure;
+		this.departure_time = departure_time;
+		this.arrival = arrival;
+		this.arrival_time = arrival_time;
+		this.availableSeats = availableSeats;
+		this.intermediateStations = intermediateStations;
+	}
 }
